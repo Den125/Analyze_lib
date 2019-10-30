@@ -46,7 +46,8 @@ QMap<QString,QStringList> analyze_sequence_diagram(QString filename, ProjectData
     QFile model(Project.path+"/"+Structures::type(Structures::DiagramType::classes)+"/"+"model.txt");
     if (model.open(QIODevice::ReadWrite))
     {
-        QString model_file=model.readAll();
+        QTextStream in_model(&model);
+        QString model_file=in_model.readAll();
         foreach (QString name_class,class_list.keys())
         {
             //TODO сделай реализацию
@@ -61,8 +62,7 @@ QMap<QString,QStringList> analyze_sequence_diagram(QString filename, ProjectData
                 model_file.insert(9,"\nclass "+name_class+"{\n"+class_list.value(name_class).join('\n')+"\n}");
             }
         }
-        model.resize(0);
-        QTextStream in_model(&model);
+        model.resize(0);        
         in_model<<model_file;
         model.close();
     }

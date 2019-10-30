@@ -1,11 +1,12 @@
 #include "analyze.h"
 #include <QFile>
 #include <QTextStream>
+#include <QDebug>
 
 QMap<QString,QStringList> Analyze::get_actors_list(QMap<QString,Structures::complex> list_elements,QString project_path)
 {
     QMap<QString,QStringList> list_actors;
-    QFile file(project_path+"/"+Structures::type(Structures::DiagramType::use_case)+"/case.txt");
+    QFile file(project_path+"/"+Structures::type(Structures::DiagramType::use_case)+"/use_case.txt");
     if (!file.open(QIODevice::ReadOnly))
     {
         return list_actors;
@@ -16,6 +17,7 @@ QMap<QString,QStringList> Analyze::get_actors_list(QMap<QString,Structures::comp
     {
         if (list_elements.value(key).type==Structures::robustness)
         {
+
             QRegExp actor;
             actor.setPattern("\\w*\\s(\\W*|\\W*(left|right|up|down)\\W*)\\s"+key);
             actor.setMinimal(true);
@@ -30,24 +32,24 @@ QMap<QString,QStringList> Analyze::get_actors_list(QMap<QString,Structures::comp
                 else
                 {
                     text_precedents.insert(key,text_precedents.value(key)+"actor "+captured_element+"\n");
-                    list_actors.insert(captured_element,QStringList()<<list_actors.value(captured_element)<<key);
+                    list_actors.insert(key,QStringList()<<list_actors.value(key)<<captured_element);//captured_element,QStringList()<<list_actors.value(captured_element)<<key);
                 }
                 index+=actor.matchedLength();
             }
             QFile newf;
-            newf.setFileName(project_path+"/"+Structures::type(Structures::DiagramType::robustness)+"/"+key+".txt");
+            newf.setFileName(project_path+"/"+Structures::type(Structures::robustness)+"/"+key+".txt");
             if (newf.exists() && newf.size()!=0)
             {
                  if (newf.open(QIODevice::ReadWrite))
                     {
-                        QString str_newf=newf.readAll();
+                        QTextStream text(&newf);
+                        QString str_newf=text.readAll();
                         str_newf.remove(0,9);
                         QStringList file_list;
                         file_list<<text_precedents.value(key).split('\n')<<str_newf.split('\n');
                         file_list.removeDuplicates();
                         file_list.removeAll(QString(""));
                         newf.resize(0);
-                        QTextStream text(&newf);
                         text<<"@startuml\n"<<file_list.join('\n');
                         newf.close();
                     }
@@ -91,5 +93,7 @@ QMap<QString,Structures::complex> analyze_usecase_diagram(QString filename, Proj
         list_precedents.insert(find_str,{Structures::DiagramType::robustness,true});
         find_str.clear();
     }
+    usecaseFile.close();
+    Analyze::get_actors_list(list_precedents,Project.path);
     return list_precedents;
 }

@@ -8,7 +8,6 @@ QMap<QString, Structures::complex> analyze_usecase_diagram(QString filename, Pro
 
 QMap<QString,QStringList> analyze_sequence_diagram(QString filename, ProjectData Project);
 
-//void Analyze::analyze(ProjectData& Project)
 QMap<QString,Structures::complex> Analyze::analyze(QMap<QString,Structures::complex> list_elements,
                     QString project_path)
 {

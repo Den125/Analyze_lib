@@ -3,12 +3,9 @@
 #include <QTextStream>
 #include <QJsonDocument>
 #include "analyze.h"
-
+#include <QDebug>
 QStringList analyze_robustness_file(QString str);
-//QStringList analyze_description_main(QMap<QString,Structures::complex>* list_elements, QString key, QJsonObject main, QStringList objects, ProjectData Project);
-//QStringList analyze_description_alt(QMap<QString,Structures::complex>* list_elements, QString key, QJsonObject alt, QStringList object, ProjectData Projects);
 QStringList analyze_description(QMap<QString,Structures::complex>* list_elements, QString key, QJsonObject json_object, QStringList objects, ProjectData Project);
-
 
 QStringList analyze_robustness_file(QString str)
 {
@@ -27,6 +24,20 @@ QStringList analyze_robustness_file(QString str)
                 captured_object<<"as";
                 captured_object<<captured_object[1];
             }
+            else if (captured_object.length()>=4)
+            {
+                QStringList cap_obj;
+                cap_obj<<captured_object[0]<<" ";
+                int i=1;
+                for (;captured_object[i]!="as"&&i<captured_object.length();i++)
+                {
+                    captured_object[i].remove("\"");
+                    cap_obj[1]=cap_obj[1]+" "+captured_object[i];
+                }
+                cap_obj<<captured_object[i]<<captured_object[i+1];
+                captured_object.clear();
+                captured_object=cap_obj;
+            }
             captured_object[1]="\":"+captured_object[1]+"\"";
         }
         index+=objects_all.cap().length();
@@ -34,105 +45,6 @@ QStringList analyze_robustness_file(QString str)
     }
     return objects;
 }
-/*QStringList analyze_description_main(QMap<QString,Structures::complex>* list_elements, QString key, QJsonObject main, QStringList objects, ProjectData Project)
-{
-    QString str;
-    QStringList sequences;
-    const QString format_text=".txt",format_picture=".png";
-    str.append("Главная последовательность:\n");
-    for (int i=0;i<main.keys().count();i++)
-    {
-        str.append(QString::number(i+1)+") "+main.value(QString::number(i+1)).toString()+"\n");
-    }
-    sequences<<str;
-    list_elements->insert(key+"_main",{Structures::DiagramType::sequence,true});
-    QFile newfile(Project.path+"/"+Structures::type(Structures::DiagramType::sequence)+"/"+key+"_main"+format_text);
-    if (newfile.open(QIODevice::ReadWrite))
-    {
-        QTextStream text(&newfile);
-        QString file_text;
-        if (newfile.size()!=0)
-        {
-            file_text=text.readAll();
-            QRegExp note("note as scenario.*end note");
-            int index=0;
-            //TODO Настроить добавление объектов при созданном файле
-            if ((index= note.indexIn(file_text,index))!=-1)
-            {
-                file_text.replace(index,note.matchedLength(),"note as scenario\n"+str+"\nend note");
-                newfile.resize(0);
-                text<<file_text;
-            }
-            else
-            {
-                file_text.chop(7);
-                file_text.append("note as scenario\n "+str+"\nend note");
-                newfile.resize(0);
-                text<<file_text<<"\n@enduml";
-            }
-        }
-        else
-        {
-            text<<"@startuml\nnote as scenario\n"<<str<<"end note\n"<<objects.join('\n')<<"\n@enduml";
-        }
-        newfile.close();
-    }
-    return sequences;
-}
-
-QStringList analyze_description_alt(QMap<QString,Structures::complex>* list_elements, QString key, QJsonObject alt, QStringList objects, ProjectData Project)
-{
-    QStringList sequences;
-    const QString format_text=".txt",format_picture=".png";
-    if (!alt.keys().empty())
-    {
-        QString str;
-        for (int i=0;i<alt.keys().count();i++)
-        {
-            QJsonObject alt_seq=alt.value(QString::number(i+1)).toObject();
-            str.append("Альтернативная последовательность 1:\n");
-            for (int j=0;j<alt_seq.keys().count()-1;j++)
-            {
-                str.append(QString::number(j+1)+") "+alt_seq.value(QString::number(j+1)).toString()+"\n");
-            }
-            list_elements->insert(key+"_alt"+QString::number(i),{Structures::sequence,true});
-            sequences<<str;
-            QFile newfile(Project.path+"/"+Structures::type(Structures::sequence)+"/"+key+"_alt"+QString::number(i)+format_text);
-            if (newfile.open(QIODevice::WriteOnly))
-            {
-                QTextStream text(&newfile);
-                QString file_text;
-                if (newfile.size()!=0)
-                {
-                    file_text=text.readAll();
-                    QRegExp note("note left.*end note");
-                    int index=0;
-                    if ((index= note.indexIn(file_text,index))!=-1)
-                    {
-                        file_text.replace(index,note.matchedLength()-17,'\n'+str+'\n');
-                        newfile.resize(0);
-                        text<<file_text;
-                    }
-                    else
-                    {
-                        file_text.chop(7);
-                        file_text.append("note left\n "+str+"\n end note");
-                        newfile.resize(0);
-                        text<<file_text<<objects.join(' ')<<"\n@enduml";
-                    }
-                }
-                else
-                {
-                    text<<"@startuml\nnote left\n"<<str<<"end note\n"<<objects.join('\n')<<"\n@enduml";
-                }
-                newfile.close();
-            }
-        }
-
-    }
-    return sequences;
-}
-*/
 QStringList analyze_description(QMap<QString,Structures::complex>* list_elements, QString key, QJsonObject json_object, QStringList objects, ProjectData Project)
 {
     QStringList sequences;
@@ -226,7 +138,7 @@ QMap<QString,Structures::complex> analyze_robustness_diagram(QString filename, P
             QJsonObject root = doc.object().value(filename).toObject();
             sequences<<analyze_description(&list_elements,filename,root,objects,Project);
             desc.close();
-        }
+        }/*
         QRegExp note("\nnote as scenario.*end note\n");
         note.setMinimal(true);
         int index=0;
@@ -245,7 +157,7 @@ QMap<QString,Structures::complex> analyze_robustness_diagram(QString filename, P
             QTextStream seq_write(&file);
             seq_write<<file_str;
             file.close();
-        }
+        }*/
     }
     return list_elements;
 }
