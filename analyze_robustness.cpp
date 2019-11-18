@@ -39,6 +39,7 @@ QStringList analyze_robustness_file(QString str)
                 captured_object=cap_obj;
             }
             captured_object[1]="\":"+captured_object[1]+"\"";
+            captured_object[1].remove("  ");
         }
         index+=objects_all.cap().length();
         objects<<captured_object.join(" ");
@@ -89,7 +90,7 @@ QStringList analyze_description(QMap<QString,Structures::complex>* list_elements
                 int index=0;
                 if ((index= note.indexIn(file_text,index))!=-1)
                 {
-                    file_text.replace(index,note.matchedLength()-17,'\n'+str+'\n');
+                    file_text.replace(index,note.matchedLength(),"note left\n "+str+"end note");
                     newfile.resize(0);
                     text<<file_text;
                 }
@@ -138,26 +139,7 @@ QMap<QString,Structures::complex> analyze_robustness_diagram(QString filename, P
             QJsonObject root = doc.object().value(filename).toObject();
             sequences<<analyze_description(&list_elements,filename,root,objects,Project);
             desc.close();
-        }/*
-        QRegExp note("\nnote as scenario.*end note\n");
-        note.setMinimal(true);
-        int index=0;
-        if ((index=note.indexIn(file_str,index))!=-1)
-        {
-            file_str.replace(index,note.matchedLength(),"\nnote as scenario\n"+sequences.join("\n")+"\nend note\n");
         }
-        else
-        {
-            file_str.insert(9,"\nnote as scenario\n"+sequences.join("\n")+"\nend note\n");
-        }
-        file.close();
-        if (file.open(QIODevice::WriteOnly))
-        {
-            file.resize(0);
-            QTextStream seq_write(&file);
-            seq_write<<file_str;
-            file.close();
-        }*/
     }
     return list_elements;
 }

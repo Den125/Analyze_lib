@@ -1,5 +1,6 @@
 #include "analyze.h"
 #include <QFile>
+#include <QDebug>
 #include <QTextStream>
 
 QMap<QString,QStringList> analyze_sequence_file(QString str);
@@ -13,9 +14,9 @@ QMap<QString,QStringList> analyze_sequence_file(QString str)
     while ((index= objects.indexIn(str,index))!=-1)
     {
         QString class_name;
-        class_name=objects.cap().split(" ")[0];
+        class_name=objects.cap().split("\" ")[0];
         class_name=class_name.right(class_name.length()-class_name.indexOf(":",0)-1);
-        class_name.chop(1);
+        qDebug()<<class_name;
         QString class_psevdo=objects.cap().split(" ")[2];
         QRegExp class_method("("+class_psevdo+"\\s-\\W{1,}\\s\\w*|\\w*\\s<\\W{1,}\\s"+class_psevdo+")\\s:.*\\n");
         class_method.setMinimal(true);
@@ -30,6 +31,7 @@ QMap<QString,QStringList> analyze_sequence_file(QString str)
         }
         class_list.insert(class_name,methods);
         index=index+objects.matchedLength();
+        qDebug()<<class_name<<methods;
     }
     return class_list;
 }
@@ -41,8 +43,10 @@ QMap<QString,QStringList> analyze_sequence_diagram(QString filename, ProjectData
     QMap<QString,QStringList> class_list;
     if (!diagramFile.open(QIODevice::ReadOnly))
         return class_list;
-    QString file_str=diagramFile.fileName();
+    QTextStream diagramText(&diagramFile);
+    QString file_str=diagramText.readAll();
     class_list=analyze_sequence_file(file_str);
+    qDebug()<<"classes"<<class_list;
     QFile model(Project.path+"/"+Structures::type(Structures::DiagramType::classes)+"/"+"model.txt");
     if (model.open(QIODevice::ReadWrite))
     {
